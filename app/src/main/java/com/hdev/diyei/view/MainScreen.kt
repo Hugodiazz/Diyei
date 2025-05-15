@@ -16,12 +16,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,49 +32,47 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hdev.diyei.Model.Song
-import com.hdev.diyei.R
+import com.hdev.diyei.viewModel.MainViewModel
+import com.hdev.diyei.viewModel.PlayerState
 
 
-@Preview(showBackground = true)
 @Composable
 fun MainScreen(
-    modifier: Modifier= Modifier
+    modifier: Modifier= Modifier,
+    viewModel: MainViewModel
 ){
     // Lista de canciones
-    val songs = listOf(
-        Song("Querer Querernos", "Canserbero", R.drawable.canserbero, "5:55")
-    )
+    val songs = viewModel.songs
+    val currentSong = viewModel.currentSong.collectAsState().value
+    val playerState = viewModel.playerState.collectAsState().value
     Column(modifier = modifier.fillMaxSize()){
         Text(
             text = "Mi música",
             style = MaterialTheme.typography.headlineLarge,
             modifier = Modifier.padding(16.dp)
         )
-
-        LazyColumn(modifier= modifier.fillMaxSize()) {
+        LazyColumn(modifier= modifier.weight(1f)) {
             items(songs){
                 SongItem(
                     song = it,
                     onItemClick = { song ->
-                       //
+                       viewModel.play(song.uri)
                     }
                 )
             }
         }
-    }
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(vertical = 2.dp, horizontal = 8.dp),
-        contentAlignment = Alignment.BottomCenter
-    ){
-        SongItemController(song = songs[0], onItemClick = { song ->
-            // Acción al hacer clic en el ítem
-        })
+        if (currentSong != null) {
+            SongItemController(
+                song = currentSong,
+                onButtonClick = {
+                    viewModel.togglePlayPause()
+                },
+                playerState = playerState
+            )
+        }
     }
 }
 
@@ -153,14 +153,14 @@ fun SongItem(
 @Composable
 fun SongItemController(
     song: Song,
-    onItemClick: (Song) -> Unit,
-) {
+    playerState: PlayerState,
+    onButtonClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.onSurface, shape = RoundedCornerShape(18.dp))
             .padding(8.dp)
-            .clickable { onItemClick(song) },
+            .clickable { },
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Imagen de la carátula (opcional)
@@ -212,8 +212,8 @@ fun SongItemController(
                 color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)
             )
         }
-        IconButton(onClick = { /*TODO*/ }) {
-            Icon(imageVector = Icons.Default.PlayArrow,
+        IconButton(onClick = { onButtonClick() }) {
+            Icon(imageVector = if (playerState == PlayerState.Playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                 contentDescription = "Reproducir",
                 tint = MaterialTheme.colorScheme.surface, modifier = Modifier.size(48.dp))
         }

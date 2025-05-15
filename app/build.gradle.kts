@@ -71,4 +71,9 @@ dependencies {
 
     implementation ("androidx.compose.material:material-icons-extended")
 
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+    implementation ("androidx.media3:media3-exoplayer:1.3.0")
+    implementation ("androidx.media3:media3-session:1.3.0")
+
+
 }
