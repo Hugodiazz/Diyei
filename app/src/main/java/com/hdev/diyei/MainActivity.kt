@@ -15,19 +15,24 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.hdev.diyei.ui.theme.DiyeiTheme
 import com.hdev.diyei.view.MainScreen
+import com.hdev.diyei.view.SongScreen
+import com.hdev.diyei.viewModel.ExoPlayerManager
 import com.hdev.diyei.viewModel.MainViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         checkPermissions()
+        val exoPlayerManager = ExoPlayerManager(this)
         setContent {
             DiyeiTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    val viewModel: MainViewModel = viewModel()
-                    MainScreen(modifier = Modifier.padding(innerPadding), viewModel = viewModel)
+                    MyApp()
                 }
             }
         }
@@ -45,6 +50,17 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+}
+
+@Composable
+fun MyApp(){
+    val navController = rememberNavController()
+    val viewModel: MainViewModel = viewModel()
+
+    NavHost(navController = navController, startDestination = "MainScreen" ) {
+        composable("MainScreen") { MainScreen(modifier = Modifier.padding(), viewModel = viewModel, navController) }
+        composable("SongDetails") { SongScreen(viewModel = viewModel, navController) }
+    }
 }
 
 @Composable

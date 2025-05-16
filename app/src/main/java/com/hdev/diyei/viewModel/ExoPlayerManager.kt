@@ -3,6 +3,7 @@ package com.hdev.diyei.viewModel
 import android.content.Context
 import android.net.Uri
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +32,11 @@ class ExoPlayerManager(context: Context) {
         exoPlayer.release()
     }
 
+    //Funcion que devuelve el tiempo actual
+    fun getCurrentPosition(): Long {
+        return exoPlayer.currentPosition
+    }
+
     fun togglePlayPause() {
         if (exoPlayer.isPlaying) {
             exoPlayer.pause()
@@ -39,6 +45,20 @@ class ExoPlayerManager(context: Context) {
             exoPlayer.play()
             _playerState.value = PlayerState.Playing
         }
+    }
+
+    fun seekTo(position: Long) {
+        exoPlayer.seekTo(position)
+    }
+
+    fun setOnSongEndedListener(onEnded: () -> Unit) {
+        exoPlayer.addListener(object : Player.Listener {
+            override fun onPlaybackStateChanged(state: Int) {
+                if (state == Player.STATE_ENDED) {
+                    onEnded()
+                }
+            }
+        })
     }
 }
 

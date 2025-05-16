@@ -27,13 +27,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.BlurEffect
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.hdev.diyei.Model.Song
 import com.hdev.diyei.viewModel.MainViewModel
 import com.hdev.diyei.viewModel.PlayerState
@@ -41,8 +46,9 @@ import com.hdev.diyei.viewModel.PlayerState
 
 @Composable
 fun MainScreen(
-    modifier: Modifier= Modifier,
-    viewModel: MainViewModel
+    modifier: Modifier = Modifier,
+    viewModel: MainViewModel,
+    navController: NavHostController
 ){
     // Lista de canciones
     val songs = viewModel.songs
@@ -70,7 +76,8 @@ fun MainScreen(
                 onButtonClick = {
                     viewModel.togglePlayPause()
                 },
-                playerState = playerState
+                playerState = playerState,
+                navController = navController
             )
         }
     }
@@ -92,15 +99,18 @@ fun SongItem(
     ) {
         // Imagen de la carátula (opcional)
         if (song.albumArt != null) {
-            Image(
-                painter = painterResource(id = song.albumArt),
-                contentDescription = "Carátula de ${song.title}",
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(18.dp)),
-                contentScale = ContentScale.Crop
-            )
+
+                Image(
+                    bitmap = song.albumArt.asImageBitmap(),
+                    contentDescription = "Carátula del álbum",
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(18.dp)),
+                    contentScale = ContentScale.Crop
+                )
             Spacer(modifier = Modifier.width(8.dp))
+
+
         } else {
             // Placeholder si no hay imagen
             Box(
@@ -154,20 +164,22 @@ fun SongItem(
 fun SongItemController(
     song: Song,
     playerState: PlayerState,
-    onButtonClick: () -> Unit) {
+    onButtonClick: () -> Unit,
+    navController: NavHostController
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(4.dp)
             .background(MaterialTheme.colorScheme.onSurface, shape = RoundedCornerShape(18.dp))
-            .padding(8.dp)
-            .clickable { },
+            .clickable { navController.navigate("SongDetails") },
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Imagen de la carátula (opcional)
         if (song.albumArt != null) {
             Image(
-                painter = painterResource(id = song.albumArt),
-                contentDescription = "Carátula de ${song.title}",
+                bitmap = song.albumArt.asImageBitmap(),
+                contentDescription = "Carátula del álbum",
                 modifier = Modifier
                     .size(56.dp)
                     .clip(RoundedCornerShape(18.dp)),
@@ -192,7 +204,6 @@ fun SongItemController(
             }
             Spacer(modifier = Modifier.width(8.dp))
         }
-
         // Información de la canción (título y artista)
         Column(
             modifier = Modifier.weight(1f)
@@ -213,9 +224,11 @@ fun SongItemController(
             )
         }
         IconButton(onClick = { onButtonClick() }) {
-            Icon(imageVector = if (playerState == PlayerState.Playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+            Icon(
+                imageVector = if (playerState == PlayerState.Playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                 contentDescription = "Reproducir",
-                tint = MaterialTheme.colorScheme.surface, modifier = Modifier.size(48.dp))
+                tint = MaterialTheme.colorScheme.surface, modifier = Modifier.size(48.dp)
+            )
         }
     }
 }
